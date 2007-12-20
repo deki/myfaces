@@ -87,7 +87,7 @@
                 <artifactItem>
                   <groupId>org.apache.myfaces.shared</groupId>
                   <artifactId>myfaces-shared-impl</artifactId>
-                  <version>3.0.1-SNAPSHOT</version>
+                  <version>3.0.1</version>
                 </artifactItem>
               </artifactItems>
               <outputDirectory>${project.build.directory}/classes</outputDirectory>
