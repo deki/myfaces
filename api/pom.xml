@@ -27,7 +27,7 @@
 
     <groupId>org.apache.myfaces.core</groupId>
     <artifactId>myfaces-api</artifactId>
-    <name>Apache MyFaces JSF Core-2.0 API</name>
+    <name>Apache MyFaces JSF-2.0 Core API</name>
     <description>
         The public API classes of the Apache MyFaces CORE JSF-2.0 project
     </description>
@@ -164,11 +164,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <archive>
-                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-                    </archive>
-                </configuration>
             </plugin>
 
             <!-- 
@@ -236,51 +231,6 @@
                         <goals>
                             <goal>make-components</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- create manifest.mf for OSGi -->
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.1.0</version>
-                <executions>
-                    <execution>
-                        <id>bundle-manifest</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>manifest</goal>
-                        </goals>
-                        <configuration>
-                            <instructions>
-                                <Bundle-SymbolicName>org.apache.myfaces.core.api</Bundle-SymbolicName>
-                                <Bundle-Classpath>.</Bundle-Classpath>
-                                <Build-Jdk>${java.version}</Build-Jdk>
-                                <Implementation-Title>${project.name}</Implementation-Title>
-                                <Implementation-Version>${project.version}</Implementation-Version>
-                                <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
-                                <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
-                                <Export-Package>
-                                    *;version="${project.version}"
-                                </Export-Package>
-                                <Import-Package>
-                                    javax.el;version="[1.0.0, 3.0.0)",
-                                    javax.validation*;version="[1.0.0, 2.0.0)",
-                                    javax.servlet;version="[2.5.0, 3.1)",
-                                    javax.servlet.http;version="[2.5.0, 3.1)",
-                                    javax.servlet.jsp;version="[2.1.0, 3.1)",
-                                    javax.servlet.jsp.jstl.core;version="[1.1.2, 2.0.0)",
-                                    javax.servlet.jsp.jstl.sql;version="[1.1.2, 2.0.0)",
-                                    javax.servlet.jsp.tagext;version="[2.1.0, 3.1)",
-                                    org.apache.commons.logging;version="[1.1.1, 2.0.0)",
-                                    javax.faces.*;version="${project.version}"
-                                </Import-Package>
-                                <Require-Bundle>
-                                    org.apache.myfaces.core.impl;bundle-version="${project.version}"
-                                </Require-Bundle>
-                            </instructions>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -428,7 +378,7 @@
                 </plugins>
             </build>
 
-            <!-- mojarra is only available on java.net -->
+            <!-- animal-sniffer is only available on java.net -->
             <pluginRepositories>
                 <pluginRepository>
                     <id>java.net.repo</id>

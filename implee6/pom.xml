@@ -49,10 +49,10 @@
             <artifactId>myfaces-api</artifactId>
         </dependency>
 
-        <!-- we can use myfaces-shared-impl, but we cannot use myfaces-impl (cyclic dependency) -->
+        <!-- we can use myfaces-shared-core, but we cannot use myfaces-impl (cyclic dependency) -->
         <dependency>
             <groupId>org.apache.myfaces.shared</groupId>
-            <artifactId>myfaces-shared-impl</artifactId>
+            <artifactId>myfaces-shared-core</artifactId>
         </dependency>
 
         <!-- in this module we need Servlet 3.0 (instead of 2.5) -->

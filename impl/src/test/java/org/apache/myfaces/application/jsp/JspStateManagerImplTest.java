@@ -16,7 +16,7 @@
 
 package org.apache.myfaces.application.jsp;
 
-//import org.apache.myfaces.shared_impl.config.MyfacesConfig;
+//import org.apache.myfaces.shared.config.MyfacesConfig;
 
 import java.io.BufferedWriter;
 import java.io.CharArrayWriter;

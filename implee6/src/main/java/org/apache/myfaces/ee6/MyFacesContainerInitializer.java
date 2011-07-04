@@ -53,7 +53,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.annotation.HandlesTypes;
 
-import org.apache.myfaces.shared_impl.webapp.webxml.DelegatedFacesServlet;
+import org.apache.myfaces.shared.webapp.webxml.DelegatedFacesServlet;
 
 /**
  * This class is called by any Java EE 6 complaint container at startup.
