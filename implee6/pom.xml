@@ -25,7 +25,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     
-    <groupId>org.apache.myfaces.core</groupId>
+    <groupId>org.apache.myfaces.core.internal</groupId>
     <artifactId>myfaces-impl-ee6</artifactId>
     <packaging>jar</packaging>
     <name>Apache MyFaces JSF-2.0 Core Impl for Java EE 6</name>

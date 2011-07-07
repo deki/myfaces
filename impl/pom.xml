@@ -358,25 +358,49 @@
                     <createSourcesJar>true</createSourcesJar>
                     <artifactSet>
                         <includes>
-                            <include>org.apache.myfaces.core:myfaces-impl-ee6</include>
+                            <include>org.apache.myfaces.core.internal:myfaces-impl-ee6</include>
                             <include>org.apache.myfaces.shared:myfaces-shared-core</include>
                         </includes>
                     </artifactSet>
                     <filters>
                         <!-- only include classes and META-INF/services entries -->
                         <filter>
-                            <artifact>org.apache.myfaces.core:myfaces-impl-ee6</artifact>
+                            <artifact>org.apache.myfaces.core.internal:myfaces-impl-ee6</artifact>
                             <includes>
-                                <include>META-INF/services/**</include>
+                                <include>META-INF/**</include>
                                 <include>org/apache/myfaces/**</include>
                             </includes>
+                            <excludes>
+                                <!-- exclude Apache resource files (otherwise our ones will be overwritten) -->
+                                <exclude>META-INF/DEPENDENCIES</exclude>
+                                <exclude>META-INF/DEPENDENCIES.txt</exclude>
+                                <exclude>META-INF/LICENSE</exclude>
+                                <exclude>META-INF/LICENSE.txt</exclude>
+                                <exclude>META-INF/NOTICE</exclude>
+                                <exclude>META-INF/NOTICE.txt</exclude>
+                                <!-- exclude manifest.mf and maven metadata of other project (b/c we have our own) -->
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                <exclude>META-INF/maven/**</exclude>
+                            </excludes>
                         </filter>
                         <filter>
                             <artifact>org.apache.myfaces.shared:myfaces-shared-core</artifact>
                             <includes>
-                                <include>META-INF/services/**</include>
+                                <include>META-INF/**</include>
                                 <include>org/apache/myfaces/shared/**</include>
                             </includes>
+                            <excludes>
+                                <!-- exclude Apache resource files (otherwise our ones will be overwritten) -->
+                                <exclude>META-INF/DEPENDENCIES</exclude>
+                                <exclude>META-INF/DEPENDENCIES.txt</exclude>
+                                <exclude>META-INF/LICENSE</exclude>
+                                <exclude>META-INF/LICENSE.txt</exclude>
+                                <exclude>META-INF/NOTICE</exclude>
+                                <exclude>META-INF/NOTICE.txt</exclude>
+                                <!-- exclude manifest.mf and maven metadata of other project (b/c we have our own) -->
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                <exclude>META-INF/maven/**</exclude>
+                            </excludes>
                         </filter>
                     </filters>
                     <relocations>
@@ -549,27 +573,27 @@
             <build>
                 <plugins>
 
-                    <!-- TODO not entirely working yet -->
+                    <!-- TODO needs MJAVADOC-320 to be fixed in order to work as expected -->
                     <plugin>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.8</version>
-                        <configuration>
-                            <!-- switch on dependency-driven aggregation -->
-                            <includeDependencySources>true</includeDependencySources>
-
-                            <dependencySourceIncludes>
-                                <dependencySourceInclude>org.apache.myfaces.core:myfaces-impl-ee6</dependencySourceInclude>
-                                <dependencySourceInclude>org.apache.myfaces.shared:myfaces-shared-core</dependencySourceInclude>
-                            </dependencySourceIncludes>
-
-                            <encoding>UTF-8</encoding>
-                        </configuration>
+                        <version>2.8.1-SNAPSHOT</version>
                         <executions>
                             <execution>
                                 <id>attach-javadoc</id>
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>
+                                <configuration>
+                                    <!-- switch on dependency-driven aggregation -->
+                                    <includeDependencySources>true</includeDependencySources>
+
+                                    <dependencySourceIncludes>
+                                        <dependencySourceInclude>org.apache.myfaces.core.internal:myfaces-impl-ee6</dependencySourceInclude>
+                                        <dependencySourceInclude>org.apache.myfaces.shared:myfaces-shared-core</dependencySourceInclude>
+                                    </dependencySourceIncludes>
+
+                                    <encoding>UTF-8</encoding>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -730,7 +754,7 @@
 
         <!-- maven-shade-plugin will exclude this dependency automatically -->
         <dependency>
-            <groupId>org.apache.myfaces.core</groupId>
+            <groupId>org.apache.myfaces.core.internal</groupId>
             <artifactId>myfaces-impl-ee6</artifactId>
             <optional>true</optional> <!-- optional does not completely work in dependencyManagement (MNG-1630) -->
         </dependency>
