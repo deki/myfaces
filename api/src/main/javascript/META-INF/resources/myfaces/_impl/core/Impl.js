@@ -148,6 +148,15 @@ myfaces._impl.core._Runtime.singletonExtendClass("myfaces._impl.core.Impl", Obje
         //options not set we define a default one with nothing
         options = options || {};
 
+        //pass the window id into the options if not set already
+        if(!options.windowId) {
+            var windowId = _Dom.getWindowId();
+            (windowId) ? options["javax.faces.windowId"] = windowId: null;
+        } else {
+            options["javax.faces.windowId"] = options.windowId;
+            delete options.windowId;
+        }
+
         /**
          * we cross reference statically hence the mapping here
          * the entire mapping between the functions is stateless

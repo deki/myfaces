@@ -1545,6 +1545,17 @@ myfaces._impl.core._Runtime.singletonExtendClass("myfaces._impl._util._Dom", Obj
         }
 
         return this._dummyPlaceHolder;
+    },
+
+    /**
+     * fetches the window id for the current request
+     */
+    getWindowId: function() {
+        var href = window.location.href;
+        var windowId = "windowId";
+        var regex = new RegExp("[\\?&]" + windowId + "=([^&#\\;]*)");
+        var results = regex.exec(href);
+        return (results != null) ? results[1] : null;
     }
 });
 
