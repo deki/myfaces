@@ -34,6 +34,9 @@ public abstract class ResponseStateManager
 {
     public static final String RENDER_KIT_ID_PARAM = "javax.faces.RenderKitId";
     public static final String VIEW_STATE_PARAM = "javax.faces.ViewState";
+    
+    public static final String CLIENT_WINDOW_PARAM = "javax.faces.ClientWindow";
+    public static final String CLIENT_WINDOW_URL_PARAM = "jfwid";
 
     public void writeState(FacesContext context, Object state) throws IOException
     {

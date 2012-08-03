@@ -19,35 +19,47 @@
 package javax.faces.lifecycle;
 
 import javax.faces.FacesException;
+import javax.faces.FacesWrapper;
 import javax.faces.context.FacesContext;
+import javax.faces.event.PhaseListener;
 
 /**
- * see Javadoc of <a href="http://java.sun.com/javaee/javaserverfaces/1.2/docs/api/index.html">JSF Specification</a>
  *
- * @author Manfred Geiler (latest modification by $Author$)
- * @version $Revision$ $Date$
+ * @author Leonardo Uribe
  */
-public abstract class Lifecycle
+public abstract class LifecycleWrapper extends Lifecycle implements FacesWrapper<Lifecycle>
 {
-    public abstract void addPhaseListener(javax.faces.event.PhaseListener listener);
-
-    public abstract void execute(javax.faces.context.FacesContext context)
-            throws FacesException;
-
-    public abstract javax.faces.event.PhaseListener[] getPhaseListeners();
-
-    public abstract void removePhaseListener(javax.faces.event.PhaseListener listener);
-
-    public abstract void render(javax.faces.context.FacesContext context)
-            throws FacesException;
     
-    /**
-     * 
-     * @since 2.2
-     * @param context 
-     */
+    public void render(FacesContext context) throws FacesException
+    {
+        getWrapped().render(context);
+    }
+
+    public void removePhaseListener(PhaseListener listener)
+    {
+        getWrapped().removePhaseListener(listener);
+    }
+
+    public PhaseListener[] getPhaseListeners()
+    {
+        return getWrapped().getPhaseListeners();
+    }
+
+    public void execute(FacesContext context) throws FacesException
+    {
+        getWrapped().execute(context);
+    }
+
     public void attachWindow(FacesContext context)
     {
-        
+        getWrapped().attachWindow(context);
     }
+
+    public void addPhaseListener(PhaseListener listener)
+    {
+        getWrapped().addPhaseListener(listener);
+    }
+    
+    public abstract LifecycleWrapper getWrapped();
+    
 }

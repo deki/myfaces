@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.faces.context.ExternalContext;
+import javax.faces.lifecycle.ClientWindow;
 import javax.servlet.ServletContext;
 
 import org.apache.myfaces.context.ReleaseableExternalContext;
@@ -46,12 +47,15 @@ public abstract class ServletExternalContextImplBase extends ExternalContext
     private ServletContext _servletContext;
     private Map<String, Object> _applicationMap;
     private Map<String, String> _initParameterMap;
+    private ClientWindow _clientWindow;
+
     
     public ServletExternalContextImplBase(ServletContext servletContext)
     {
         _servletContext = servletContext;
         _applicationMap = null;
         _initParameterMap = null;
+        _clientWindow = null;
     }
     
     public void release()
@@ -59,6 +63,7 @@ public abstract class ServletExternalContextImplBase extends ExternalContext
         _servletContext = null;
         _applicationMap = null;
         _initParameterMap = null;
+        _clientWindow = null;
     }
     
     // ~ Methods which only rely on the ServletContext-------------------------
@@ -157,6 +162,16 @@ public abstract class ServletExternalContextImplBase extends ExternalContext
     {
         checkNull(path, "path");
         return _servletContext.getRealPath(path);
+    }
+    
+    public ClientWindow getClientWindow()
+    {
+        return _clientWindow;
+    }
+    
+    public void setClientWindow(ClientWindow window)
+    {
+        _clientWindow = window;
     }
     
     // ~ Methods which verify some required behavior---------------------------

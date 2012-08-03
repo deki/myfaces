@@ -38,6 +38,8 @@ import javax.faces.context.FacesContext;
 import javax.faces.context.Flash;
 import javax.faces.context.PartialResponseWriter;
 import javax.faces.context.PartialViewContext;
+import javax.faces.lifecycle.ClientWindow;
+import javax.faces.render.ResponseStateManager;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -314,13 +316,36 @@ public final class ServletExternalContextImpl extends ServletExternalContextImpl
     {
         checkNull(url, "url");
         checkHttpServletRequest();
-        return ((HttpServletResponse) _servletResponse).encodeURL(url);
+        String encodedUrl = ((HttpServletResponse) _servletResponse).encodeURL(url);
+        encodedUrl = encodeWindowId(encodedUrl);
+        return encodedUrl;
+    }
+    
+    private String encodeWindowId(String encodedUrl)
+    {
+        FacesContext facesContext = FacesContext.getCurrentInstance();
+        if (ClientWindow.isClientWindowUrlQueryParameterEnabled(facesContext))
+        {
+            //TODO: Use StringBuilder or some optimization.
+            ClientWindow window = facesContext.getExternalContext().getClientWindow();
+            if (window != null)
+            {
+                if (!encodedUrl.contains(ResponseStateManager.CLIENT_WINDOW_URL_PARAM))
+                {
+                    encodedUrl = encodedUrl + ( (encodedUrl.indexOf(URL_QUERY_SEPERATOR) != -1) ? 
+                            URL_PARAM_SEPERATOR : URL_QUERY_SEPERATOR ) + 
+                            ResponseStateManager.CLIENT_WINDOW_URL_PARAM +
+                            URL_NAME_VALUE_PAIR_SEPERATOR+ window.getId();
+                }
+            }
+        }
+        return encodedUrl;
     }
 
     @Override
     public String encodeBookmarkableURL(String baseUrl, Map<String,List<String>> parameters)
     {
-        return encodeURL(baseUrl, parameters);
+        return encodeWindowId(encodeURL(baseUrl, parameters));
     }
 
     @Override
@@ -342,13 +367,13 @@ public final class ServletExternalContextImpl extends ServletExternalContextImpl
     {
         checkNull(url, "url");
         checkHttpServletRequest();
-        return ((HttpServletResponse) _servletResponse).encodeURL(url);
+        return encodeWindowId(((HttpServletResponse) _servletResponse).encodeURL(url));
     }
 
     @Override
     public String encodeRedirectURL(String baseUrl, Map<String,List<String>> parameters)
     {
-        return _httpServletResponse.encodeRedirectURL(encodeURL(baseUrl, parameters));
+        return encodeWindowId(_httpServletResponse.encodeRedirectURL(encodeURL(baseUrl, parameters)));
     }
 
     @Override

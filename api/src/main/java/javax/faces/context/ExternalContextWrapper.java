@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.faces.FacesWrapper;
+import javax.faces.lifecycle.ClientWindow;
 
 /**
  * @author Simon Lessard (latest modification by $Author$)
@@ -477,4 +478,17 @@ public abstract class ExternalContextWrapper extends ExternalContext implements 
     {
         getWrapped().setSessionMaxInactiveInterval(interval);
     }
+
+    @Override
+    public ClientWindow getClientWindow()
+    {
+        return getWrapped().getClientWindow();
+    }
+
+    @Override
+    public void setClientWindow(ClientWindow window)
+    {
+        getWrapped().setClientWindow(window);
+    }
+    
 }

@@ -19,12 +19,15 @@
 package org.apache.myfaces.renderkit.html;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.faces.component.UINamingContainer;
 
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.context.ResponseWriter;
+import javax.faces.lifecycle.ClientWindow;
 import javax.faces.render.RenderKitFactory;
 import javax.faces.render.ResponseStateManager;
 
@@ -72,6 +75,8 @@ public class HtmlResponseStateManager extends MyfacesResponseStateManager
     private Boolean _handleStateCachingMechanics;
     
     private StateCacheFactory _stateCacheFactory;
+    
+    private AtomicLong _counter = new AtomicLong();
     
     public HtmlResponseStateManager()
     {
@@ -139,6 +144,32 @@ public class HtmlResponseStateManager extends MyfacesResponseStateManager
 
         // renderKitId field
         writeRenderKitIdField(facesContext, responseWriter);
+        
+        // windowId field
+        writeWindowIdField(facesContext, responseWriter);
+    }
+    
+    private void writeWindowIdField(FacesContext facesContext, ResponseWriter responseWriter) throws IOException
+    {
+        ClientWindow clientWindow = facesContext.getExternalContext().getClientWindow();
+        if (clientWindow != null)
+        {
+            responseWriter.startElement(HTML.INPUT_ELEM, null);
+            responseWriter.writeAttribute(HTML.TYPE_ATTR, HTML.INPUT_TYPE_HIDDEN, null);
+            StringBuilder sb = new StringBuilder();
+            char sepChar = UINamingContainer.getSeparatorChar(facesContext);
+            sb.append(facesContext.getViewRoot().getContainerClientId(facesContext));
+            sb.append(sepChar);
+            sb.append(ResponseStateManager.CLIENT_WINDOW_PARAM);
+            sb.append(sepChar);
+            // A counter is enough, because only uniqueness of UIViewRoot 
+            // per page is needed
+            sb.append(_counter.incrementAndGet());
+            responseWriter.writeAttribute(HTML.ID_ATTR, sb.toString(), null);
+            responseWriter.writeAttribute(HTML.NAME_ATTR, ResponseStateManager.CLIENT_WINDOW_PARAM, null);
+            responseWriter.writeAttribute(HTML.VALUE_ATTR, clientWindow.getId(), null);
+            responseWriter.endElement(HTML.INPUT_ELEM);
+        }
     }
     
     @Override

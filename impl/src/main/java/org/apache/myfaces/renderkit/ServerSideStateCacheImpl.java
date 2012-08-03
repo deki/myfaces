@@ -43,10 +43,12 @@ import javax.faces.application.ProjectStage;
 
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.faces.lifecycle.ClientWindow;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 import org.apache.commons.collections.map.AbstractReferenceMap;
+import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.collections.map.ReferenceMap;
 import org.apache.myfaces.application.StateCache;
 import org.apache.myfaces.buildtools.maven2.plugin.builder.annotation.JSFWebConfigParam;
@@ -305,7 +307,16 @@ class ServerSideStateCacheImpl extends StateCache<Object, Object>
             
             if (key == null )
             {
-                if (isUseFlashScopePurgeViewsInSession(context.getExternalContext()) && 
+                // Check if clientWindow is enabled and if the last view key is stored
+                // into session, so we can use it to chain the precedence in GET-GET
+                // cases.
+                ClientWindow clientWindow = context.getExternalContext().getClientWindow();
+                if (clientWindow != null)
+                {
+                    key = (SerializedViewKey) viewCollection.
+                            getLastWindowKey(context, clientWindow.getId());
+                }
+                else if (isUseFlashScopePurgeViewsInSession(context.getExternalContext()) && 
                     Boolean.TRUE.equals(context.getExternalContext().getRequestMap()
                             .get("oam.Flash.REDIRECT.PREVIOUSREQUEST")))
                 {
@@ -319,6 +330,13 @@ class ServerSideStateCacheImpl extends StateCache<Object, Object>
                 context, context.getViewRoot().getViewId(), getNextViewSequence(context));
         viewCollection.add(context, serializeView(context, serializedView), nextKey, key);
 
+        ClientWindow clientWindow = context.getExternalContext().getClientWindow();
+        if (clientWindow != null)
+        {
+            //Update the last key generated for the current windowId in session map
+            viewCollection.putLastWindowKey(context, clientWindow.getId(), nextKey);
+        }
+        
         // replace the value to notify the container about the change
         sessionMap.put(SERIALIZED_VIEW_SESSION_ATTR, viewCollection);
     }
@@ -599,6 +617,8 @@ class ServerSideStateCacheImpl extends StateCache<Object, Object>
         
         private final Map<SerializedViewKey, SerializedViewKey> _precedence = 
             new HashMap<SerializedViewKey, SerializedViewKey>();
+        
+        private Map<String, SerializedViewKey> _lastWindowKeys = null;
 
         // old views will be hold as soft references which will be removed by
         // the garbage collector if free memory is low
@@ -743,6 +763,29 @@ class ServerSideStateCacheImpl extends StateCache<Object, Object>
                 }
             }
             return views;
+        }
+        
+        public synchronized void putLastWindowKey(FacesContext context, String id, SerializedViewKey key)
+        {
+            if (_lastWindowKeys == null)
+            {
+                Integer i = getNumberOfSequentialViewsInSession(context);
+                int j = getNumberOfViewsInSession(context);
+                if (i != null && i.intValue() > 0)
+                {
+                    _lastWindowKeys = new LRUMap((j / i.intValue()) + 1);
+                }
+            }
+            _lastWindowKeys.put(id, key);
+        }
+        
+        public SerializedViewKey getLastWindowKey(FacesContext context, String id)
+        {
+            if (_lastWindowKeys != null)
+            {
+                return _lastWindowKeys.get(id);
+            }
+            return null;
         }
 
         /**

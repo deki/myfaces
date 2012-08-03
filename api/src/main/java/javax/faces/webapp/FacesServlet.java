@@ -192,6 +192,8 @@ public final class FacesServlet implements Servlet
             }
             else
             {
+                //JSF 2.2: attach window
+                _lifecycle.attachWindow(facesContext);
                 // If this returns false, handle as follows:
                 // call Lifecycle.execute(javax.faces.context.FacesContext)
                 _lifecycle.execute(facesContext);
