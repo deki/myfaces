@@ -28,7 +28,7 @@ import java.util.Set;
 
 /**
  * NOTE: Class copied from trinidad to be used on FlashImpl.
- * 
+ *
  * Map that wraps another to provide an isolated namespace using
  * a prefix.  This is especially handy for storing properties on
  * the session in a structured manner without putting them into

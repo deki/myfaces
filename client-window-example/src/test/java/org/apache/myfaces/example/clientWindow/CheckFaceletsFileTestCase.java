@@ -18,7 +18,6 @@
  */
 package org.apache.myfaces.example.clientWindow;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -41,11 +40,11 @@ public class CheckFaceletsFileTestCase extends FaceletTestCase
         super.setUpServletObjects();
         servletContext.addInitParameter("org.apache.myfaces.annotation.SCAN_PACKAGES",
                 "org.apache.myfaces.example");
-        
+
     }
     /**
      * Check all .xhtml can be parsed by facelets compiler
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -53,7 +52,7 @@ public class CheckFaceletsFileTestCase extends FaceletTestCase
     {
         Compiler compiler = vdl.createCompiler(facesContext);
         FaceletFactory factory = vdl.createFaceletFactory(facesContext, compiler);
-        
+
         checkFaceletsFiles(factory, "/");
     }
 
@@ -76,17 +75,18 @@ public class CheckFaceletsFileTestCase extends FaceletTestCase
 
     /**
      * Check a if a single view can be built.
-     * 
+     *
      * @throws Exception
      */
     @Test
-    public void testSingleFaceletsFile() throws Exception {
+    public void testSingleFaceletsFile() throws Exception
+    {
         //Step 1: initialize beans
-        
+
         //Step 2: build view
         UIViewRoot root = facesContext.getViewRoot();
         vdl.buildView(facesContext, root, "helloWorld.xhtml");
-        
+
         //Step 3: render view
         FastWriter fw = new FastWriter();
         ResponseWriter rw = facesContext.getResponseWriter();
@@ -95,9 +95,10 @@ public class CheckFaceletsFileTestCase extends FaceletTestCase
         root.encodeAll(facesContext);
         //System.out.println(fw);
     }
-    
+
     @Test
-    public void testCanBuildViews() throws Exception {
+    public void testCanBuildViews() throws Exception
+    {
         //Step 1: initialize beans
         /*
         List<String> viewPaths = new ArrayList<String>();
@@ -132,7 +133,7 @@ public class CheckFaceletsFileTestCase extends FaceletTestCase
             vdl.buildView(facesContext, root, viewPath);
         }*/
     }
-    
+
     private void addViewFacelets(List<String> viewPaths, String pathBase)
     {
         Set<String> paths = externalContext.getResourcePaths(pathBase);
@@ -149,7 +150,7 @@ public class CheckFaceletsFileTestCase extends FaceletTestCase
         }
     }
 
-    
+
     @Override
     protected String getDirectory()
     {

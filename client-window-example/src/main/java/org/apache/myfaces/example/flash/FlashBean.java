@@ -15,10 +15,9 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/
+ */
 package org.apache.myfaces.example.flash;
 
-import java.awt.event.ActionEvent;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.RequestScoped;
 
@@ -31,7 +30,7 @@ public class FlashBean
     {
         return "flash2";
     }
-    
+
     public String gotoFlash3()
     {
         return "flash3";
@@ -39,7 +38,7 @@ public class FlashBean
 
     public String gotoFlash1()
     {
-        return "flash1"; 
+        return "flash1";
     }
 
 }
