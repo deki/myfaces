@@ -775,6 +775,10 @@ class ServerSideStateCacheImpl extends StateCache<Object, Object>
                 {
                     _lastWindowKeys = new LRUMap((j / i.intValue()) + 1);
                 }
+                else
+                {
+                    _lastWindowKeys = new LRUMap(j + 1);
+                }
             }
             _lastWindowKeys.put(id, key);
         }
