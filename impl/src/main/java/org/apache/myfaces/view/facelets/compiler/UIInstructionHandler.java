@@ -81,13 +81,14 @@ final class UIInstructionHandler extends AbstractUIHandler
     {
         if (parent != null)
         {
+            String facetName = this.getFacetName(ctx, parent);
+            
             // our id
             String id = ctx.generateUniqueId(this.id);
 
             // grab our component
             UIComponent c = null;
             FaceletCompositionContext mctx= FaceletCompositionContext.getCurrentInstance(ctx);
-            boolean componentFoundInserted = false;
             
             if (mctx.isRefreshingSection())
             {
@@ -151,30 +152,38 @@ final class UIInstructionHandler extends AbstractUIHandler
             if (componentFound)
             {
                 mctx.finalizeForDeletion(c);
-                if (!componentFoundInserted)
-                {
-                    if (mctx.isRefreshingSection())
-                    {
-                        ctx.getFacesContext().setProcessingEvents(false); 
-                    }
-                    parent.getChildren().remove(c);
-                    if (mctx.isRefreshingSection())
-                    {
-                        ctx.getFacesContext().setProcessingEvents(oldProcessingEvents);
-                    }
-                }
-            }
-            if (!componentFoundInserted)
-            {
-                if (componentFound && mctx.isRefreshingSection())
+                if (mctx.isRefreshingSection())
                 {
                     ctx.getFacesContext().setProcessingEvents(false); 
                 }
-                this.addComponent(ctx, parent, c);
-                if (componentFound && mctx.isRefreshingSection())
+                if (facetName == null)
+                {
+                    parent.getChildren().remove(c);
+                }
+                else
+                {
+                    ComponentSupport.removeFacet(ctx, parent, c, facetName);
+                }
+                if (mctx.isRefreshingSection())
                 {
                     ctx.getFacesContext().setProcessingEvents(oldProcessingEvents);
                 }
+            }
+            if (componentFound && mctx.isRefreshingSection())
+            {
+                ctx.getFacesContext().setProcessingEvents(false); 
+            }
+            if (facetName == null)
+            {
+                parent.getChildren().add(c);
+            }
+            else
+            {
+                ComponentSupport.addFacet(ctx, parent, c, facetName);
+            }
+            if (componentFound && mctx.isRefreshingSection())
+            {
+                ctx.getFacesContext().setProcessingEvents(oldProcessingEvents);
             }
         }
     }
