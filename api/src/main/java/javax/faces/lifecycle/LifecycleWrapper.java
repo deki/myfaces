@@ -60,6 +60,6 @@ public abstract class LifecycleWrapper extends Lifecycle implements FacesWrapper
         getWrapped().addPhaseListener(listener);
     }
     
-    public abstract LifecycleWrapper getWrapped();
+    public abstract Lifecycle getWrapped();
     
 }
