@@ -39,7 +39,6 @@ import javax.faces.context.Flash;
 import javax.faces.context.PartialResponseWriter;
 import javax.faces.context.PartialViewContext;
 import javax.faces.lifecycle.ClientWindow;
-import javax.faces.render.ResponseStateManager;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
