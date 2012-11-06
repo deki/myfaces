@@ -324,18 +324,22 @@ public final class ServletExternalContextImpl extends ServletExternalContextImpl
     private String encodeWindowId(String encodedUrl)
     {
         FacesContext facesContext = FacesContext.getCurrentInstance();
-        if (ClientWindow.isClientWindowUrlQueryParameterEnabled(facesContext))
+        if (ClientWindow.isClientWindowRenderModeEnabled(facesContext))
         {
             //TODO: Use StringBuilder or some optimization.
             ClientWindow window = facesContext.getExternalContext().getClientWindow();
             if (window != null)
             {
-                if (!encodedUrl.contains(ResponseStateManager.CLIENT_WINDOW_URL_PARAM))
+                Map<String, String> map = window.getQueryURLParameters(facesContext);
+                if (map != null)
                 {
-                    encodedUrl = encodedUrl + ( (encodedUrl.indexOf(URL_QUERY_SEPERATOR) != -1) ? 
+                    for (Map.Entry<String , String> entry : map.entrySet())
+                    {
+                        encodedUrl = encodedUrl + ( (encodedUrl.indexOf(URL_QUERY_SEPERATOR) != -1) ? 
                             URL_PARAM_SEPERATOR : URL_QUERY_SEPERATOR ) + 
-                            ResponseStateManager.CLIENT_WINDOW_URL_PARAM +
-                            URL_NAME_VALUE_PAIR_SEPERATOR+ window.getId();
+                            entry.getKey() +
+                            URL_NAME_VALUE_PAIR_SEPERATOR+ entry.getValue();
+                    }
                 }
             }
         }

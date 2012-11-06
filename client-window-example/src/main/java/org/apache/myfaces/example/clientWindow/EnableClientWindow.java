@@ -35,7 +35,7 @@ public class EnableClientWindow extends UINamingContainer
     @Override
     public void encodeBegin(FacesContext context) throws IOException
     {
-        ClientWindow.enableClientWindowUrlQueryParameter(context);
+        ClientWindow.enableClientWindowRenderMode(context);
         super.encodeBegin(context);
     }
 }

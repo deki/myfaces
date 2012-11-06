@@ -18,6 +18,7 @@
  */
 package javax.faces.lifecycle;
 
+import java.util.Map;
 import javax.faces.context.FacesContext;
 
 /**
@@ -31,27 +32,29 @@ public abstract class ClientWindow
     public static final String CLIENT_WINDOW_MODE_PARAM_NAME = 
             "javax.faces.CLIENT_WINDOW_MODE";
     
-    private static final String CLIENT_WINDOW_URL_QUERY_PARAMETER_DISABLED = 
+    private static final String CLIENT_WINDOW_RENDER_MODE_DISABLED = 
             "org.apache.myfaces.CLIENT_WINDOW_URL_QUERY_PARAMETER_DISABLED";
     
     public abstract void decode(FacesContext context);
     
     public abstract String getId();
     
-    public static boolean isClientWindowUrlQueryParameterEnabled(FacesContext context)
+    public abstract Map<String,String> getQueryURLParameters(FacesContext context);
+    
+    public static boolean isClientWindowRenderModeEnabled(FacesContext context)
     {
         // By default is enabled, so it is easier to check the opposite.
         return !Boolean.TRUE.equals(
-                context.getAttributes().get(CLIENT_WINDOW_URL_QUERY_PARAMETER_DISABLED));
+                context.getAttributes().get(CLIENT_WINDOW_RENDER_MODE_DISABLED));
     }
     
-    public static void disableClientWindowUrlQueryParameter(FacesContext context)
+    public static void disableClientWindowRenderMode(FacesContext context)
     {
-        context.getAttributes().put(CLIENT_WINDOW_URL_QUERY_PARAMETER_DISABLED, Boolean.TRUE);
+        context.getAttributes().put(CLIENT_WINDOW_RENDER_MODE_DISABLED, Boolean.TRUE);
     }
     
-    public static void enableClientWindowUrlQueryParameter(FacesContext context)
+    public static void enableClientWindowRenderMode(FacesContext context)
     {
-        context.getAttributes().put(CLIENT_WINDOW_URL_QUERY_PARAMETER_DISABLED, Boolean.FALSE);
+        context.getAttributes().put(CLIENT_WINDOW_RENDER_MODE_DISABLED, Boolean.FALSE);
     }
 }

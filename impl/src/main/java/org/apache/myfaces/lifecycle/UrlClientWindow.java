@@ -18,6 +18,8 @@
  */
 package org.apache.myfaces.lifecycle;
 
+import java.util.HashMap;
+import java.util.Map;
 import javax.faces.context.FacesContext;
 import javax.faces.lifecycle.ClientWindow;
 import javax.faces.render.ResponseStateManager;
@@ -31,6 +33,8 @@ public class UrlClientWindow extends ClientWindow
     private String windowId;
 
     private TokenGenerator tokenGenerator;
+    
+    private Map<String,String> queryParamsMap;
     
     public UrlClientWindow(TokenGenerator tokenGenerator)
     {
@@ -82,6 +86,19 @@ public class UrlClientWindow extends ClientWindow
     public void setId(String id)
     {
         windowId = id;
+        queryParamsMap = null;
+    }
+
+    @Override
+    public Map<String, String> getQueryURLParameters(FacesContext context)
+    {
+        if (queryParamsMap == null)
+        {
+            queryParamsMap = new HashMap<String, String>(2,1);
+            queryParamsMap.put(ResponseStateManager.CLIENT_WINDOW_URL_PARAM, 
+                context.getExternalContext().getClientWindow().getId());
+        }
+        return queryParamsMap;
     }
     
 }

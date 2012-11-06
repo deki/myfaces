@@ -35,7 +35,7 @@ public class DisableClientWindow extends UINamingContainer
     @Override
     public void encodeBegin(FacesContext context) throws IOException
     {
-        ClientWindow.disableClientWindowUrlQueryParameter(context);
+        ClientWindow.disableClientWindowRenderMode(context);
         super.encodeBegin(context);
     }
 
