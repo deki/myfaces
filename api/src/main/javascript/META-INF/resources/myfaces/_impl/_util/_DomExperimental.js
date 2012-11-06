@@ -1,3 +1,18 @@
+/* Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 if (_MF_SINGLTN) {
     _MF_SINGLTN(_PFX_UTIL + "_DomExperimental", myfaces._impl._util._Dom, /** @lends myfaces._impl._util._Dom.prototype */ {
         constructor_:function () {
@@ -103,13 +118,11 @@ if (_MF_SINGLTN) {
                 executes = this._Lang.strToArray(executes, /\s+/);
             }
 
-            for (var executable in executes) {
-                if (!executes.hasOwnProperty(executable)) continue;
-                var element = this.byId(executes[executable]);
+            for (var cnt = 0, len = executes.length; cnt < len ; cnt ++) {
+                var element = this.byId(executes[cnt]);
                 var inputs = this.findByTagName(element, "input", true);
-                for (var key in inputs) {
-                    if (!inputs.hasOwnProperty(key)) continue;
-                    if (this.getAttribute(inputs[key], "type") == "file") return true;
+                for (var cnt2 = 0, len2 = inputs.length; cnt2 < len2 ; cnt2++) {
+                    if (this.getAttribute(inputs[cnt2], "type") == "file") return true;
                 }
             }
             return false;
