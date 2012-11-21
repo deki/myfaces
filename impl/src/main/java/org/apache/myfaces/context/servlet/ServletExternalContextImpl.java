@@ -316,7 +316,8 @@ public final class ServletExternalContextImpl extends ServletExternalContextImpl
         checkNull(url, "url");
         checkHttpServletRequest();
         String encodedUrl = ((HttpServletResponse) _servletResponse).encodeURL(url);
-        encodedUrl = encodeWindowId(encodedUrl);
+        encodedUrl = encodeURL(encodedUrl, null);
+        //encodedUrl = encodeWindowId(encodedUrl);
         return encodedUrl;
     }
     
@@ -348,7 +349,7 @@ public final class ServletExternalContextImpl extends ServletExternalContextImpl
     @Override
     public String encodeBookmarkableURL(String baseUrl, Map<String,List<String>> parameters)
     {
-        return encodeWindowId(encodeURL(baseUrl, parameters));
+        return encodeURL(baseUrl, parameters);
     }
 
     @Override
@@ -370,13 +371,15 @@ public final class ServletExternalContextImpl extends ServletExternalContextImpl
     {
         checkNull(url, "url");
         checkHttpServletRequest();
-        return encodeWindowId(((HttpServletResponse) _servletResponse).encodeURL(url));
+        //return encodeWindowId(((HttpServletResponse) _servletResponse).encodeURL(url));
+        return encodeURL(((HttpServletResponse) _servletResponse).encodeURL(url), null);
     }
 
     @Override
     public String encodeRedirectURL(String baseUrl, Map<String,List<String>> parameters)
     {
-        return encodeWindowId(_httpServletResponse.encodeRedirectURL(encodeURL(baseUrl, parameters)));
+        //return encodeWindowId(_httpServletResponse.encodeRedirectURL(encodeURL(baseUrl, parameters)));
+        return _httpServletResponse.encodeRedirectURL(encodeURL(baseUrl, parameters));
     }
 
     @Override
@@ -808,6 +811,30 @@ public final class ServletExternalContextImpl extends ServletExternalContextImpl
                 }
             }
         }
+        
+        FacesContext facesContext = FacesContext.getCurrentInstance();
+        if (ClientWindow.isClientWindowRenderModeEnabled(facesContext))
+        {
+            //TODO: Use StringBuilder or some optimization.
+            ClientWindow window = facesContext.getExternalContext().getClientWindow();
+            if (window != null)
+            {
+                Map<String, String> map = window.getQueryURLParameters(facesContext);
+                if (map != null)
+                {
+                    for (Map.Entry<String , String> entry : map.entrySet())
+                    {
+                        ArrayList<String> value = new ArrayList<String>(1);
+                        value.add(entry.getValue());
+                        if (paramMap == null)
+                        {
+                            paramMap = new HashMap<String, List<String>>();
+                        }
+                        paramMap.put(entry.getKey(), value);
+                    }
+                }
+            }
+        }        
 
         // start building the new URL
         StringBuilder newUrl = new StringBuilder(baseUrl);

@@ -431,9 +431,12 @@ public class CODIClientSideWindow extends ClientWindow
     {
         if (queryParamsMap == null)
         {
-            queryParamsMap = new HashMap<String, String>(2,1);
-            queryParamsMap.put(ResponseStateManager.CLIENT_WINDOW_URL_PARAM, 
-                context.getExternalContext().getClientWindow().getId());
+            String id = context.getExternalContext().getClientWindow().getId();
+            if (id != null)
+            {
+                queryParamsMap = new HashMap<String, String>(2,1);
+                queryParamsMap.put(ResponseStateManager.CLIENT_WINDOW_URL_PARAM, id);
+            }
         }
         return queryParamsMap;
     }
