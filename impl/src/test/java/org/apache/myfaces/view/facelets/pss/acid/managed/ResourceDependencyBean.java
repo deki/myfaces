@@ -16,31 +16,34 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.myfaces.application.viewstate;
+package org.apache.myfaces.view.facelets.pss.acid.managed;
 
-import javax.faces.context.FacesContext;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
 
 /**
  *
- * @param <T>
- * @param <K>
+ * @author Leonardo Uribe
  */
-abstract class SessionViewStorageFactory<T extends KeyFactory<K>, K>
+@ManagedBean(name="resourceDependencyBean")
+@SessionScoped
+public class ResourceDependencyBean
 {
-    private KeyFactory<K> keyFactory;
-
-    public SessionViewStorageFactory(KeyFactory<K> keyFactory)
-    {
-        this.keyFactory = keyFactory;
-    }
-
-    public KeyFactory<K> getKeyFactory()
-    {
-        return keyFactory;
-    }
-
-    public abstract SerializedViewCollection createSerializedViewCollection(FacesContext context);
-
-    public abstract SerializedViewKey createSerializedViewKey(FacesContext facesContext, String viewId, K key);
+    private boolean includeContent;
     
+    /**
+     * @return the includeContent
+     */
+    public boolean isIncludeContent()
+    {
+        return includeContent;
+    }
+
+    /**
+     * @param includeContent the includeContent to set
+     */
+    public void setIncludeContent(boolean includeContent)
+    {
+        this.includeContent = includeContent;
+    }
 }

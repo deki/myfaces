@@ -553,25 +553,9 @@
                     <createSourcesJar>true</createSourcesJar>
                     <artifactSet>
                         <includes>
-                            <include>org.apache.myfaces.core.internal:myfaces-impl-ee6</include>
                             <include>org.apache.myfaces.core.internal:myfaces-impl-shared</include>
                         </includes>
                     </artifactSet>
-                    <filters>
-                        <filter>
-                            <artifact>org.apache.myfaces.core.internal:myfaces-impl-ee6</artifact>
-                            <includes>
-                                <include>META-INF/services/**</include>
-                                <include>org/apache/myfaces/**</include>
-                            </includes>
-                            <excludes>
-                                <exclude>META-INF/LICENSE</exclude>
-                                <exclude>META-INF/NOTICE</exclude>
-                                <exclude>META-INF/DEPENDENCIES</exclude>
-                                <exclude>META-INF/MANIFEST.MF</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
                 </configuration>
             </plugin>
 

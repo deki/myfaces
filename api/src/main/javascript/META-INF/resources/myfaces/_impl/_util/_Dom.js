@@ -373,6 +373,220 @@ _MF_SINGLTN(_PFX_UTIL + "_Dom", Object, /** @lends myfaces._impl._util._Dom.prot
         return ret;
     },
 
+    propertyToAttribute: function(name) {
+        if (name === 'className') {
+            return 'class';
+        } else if (name === 'xmllang') {
+            return 'xml:lang';
+        } else {
+            return name.toLowerCase();
+        }
+    },
+
+    isFunctionNative: function(func) {
+        return /^\s*function[^{]+{\s*\[native code\]\s*}\s*$/.test(String(func));
+    },
+
+    detectAttributes: function(element) {
+        //test if 'hasAttribute' method is present and its native code is intact
+        //for example, Prototype can add its own implementation if missing
+        if (element.hasAttribute && this.isFunctionNative(element.hasAttribute)) {
+            return function(name) {
+                return element.hasAttribute(name);
+            }
+        } else {
+            try {
+                //when accessing .getAttribute method without arguments does not throw an error then the method is not available
+                element.getAttribute;
+
+                var html = element.outerHTML;
+                var startTag = html.match(/^<[^>]*>/)[0];
+                return function(name) {
+                    return startTag.indexOf(name + '=') > -1;
+                }
+            } catch (ex) {
+                return function(name) {
+                    return element.getAttribute(name);
+                }
+            }
+        }
+    },
+
+    /**
+     * copy all attributes from one element to another - except id
+     * @param target element to copy attributes to
+     * @param source element to copy attributes from
+     * @ignore
+     */
+    cloneAttributes: function(target, source) {
+
+        // enumerate core element attributes - without 'dir' as special case
+        var coreElementProperties = ['className', 'title', 'lang', 'xmllang'];
+        // enumerate additional input element attributes
+        var inputElementProperties = [
+            'name', 'value', 'size', 'maxLength', 'src', 'alt', 'useMap', 'tabIndex', 'accessKey', 'accept', 'type'
+        ];
+        // enumerate additional boolean input attributes
+        var inputElementBooleanProperties = [
+            'checked', 'disabled', 'readOnly'
+        ];
+
+        // Enumerate all the names of the event listeners
+        var listenerNames =
+            [ 'onclick', 'ondblclick', 'onmousedown', 'onmousemove', 'onmouseout',
+                'onmouseover', 'onmouseup', 'onkeydown', 'onkeypress', 'onkeyup',
+                'onhelp', 'onblur', 'onfocus', 'onchange', 'onload', 'onunload', 'onabort',
+                'onreset', 'onselect', 'onsubmit'
+            ];
+
+        var sourceAttributeDetector = this.detectAttributes(source);
+        var targetAttributeDetector = this.detectAttributes(target);
+
+        var isInputElement = target.nodeName.toLowerCase() === 'input';
+        var propertyNames = isInputElement ? coreElementProperties.concat(inputElementProperties) : coreElementProperties;
+        var isXML = !source.ownerDocument.contentType || source.ownerDocument.contentType == 'text/xml';
+        for (var iIndex = 0, iLength = propertyNames.length; iIndex < iLength; iIndex++) {
+            var propertyName = propertyNames[iIndex];
+            var attributeName = this.propertyToAttribute(propertyName);
+            if (sourceAttributeDetector(attributeName)) {
+
+                //With IE 7 (quirks or standard mode) and IE 8/9 (quirks mode only),
+                //you cannot get the attribute using 'class'. You must use 'className'
+                //which is the same value you use to get the indexed property. The only
+                //reliable way to detect this (without trying to evaluate the browser
+                //mode and version) is to compare the two return values using 'className'
+                //to see if they exactly the same.  If they are, then use the property
+                //name when using getAttribute.
+                if( attributeName == 'class'){
+                    if( this._RT.browser.isIE && (source.getAttribute(propertyName) === source[propertyName]) ){
+                        attributeName = propertyName;
+                    }
+                }
+
+                var newValue = isXML ? source.getAttribute(attributeName) : source[propertyName];
+                var oldValue = target[propertyName];
+                if (oldValue != newValue) {
+                    target[propertyName] = newValue;
+                }
+            } else {
+                target.removeAttribute(attributeName);
+                if (attributeName == "value") {
+                    target[propertyName] = '';
+                }
+            }
+        }
+
+        var booleanPropertyNames = isInputElement ? inputElementBooleanProperties : [];
+        for (var jIndex = 0, jLength = booleanPropertyNames.length; jIndex < jLength; jIndex++) {
+            var booleanPropertyName = booleanPropertyNames[jIndex];
+            var newBooleanValue = source[booleanPropertyName];
+            var oldBooleanValue = target[booleanPropertyName];
+            if (oldBooleanValue != newBooleanValue) {
+                target[booleanPropertyName] = newBooleanValue;
+            }
+        }
+
+        //'style' attribute special case
+        if (sourceAttributeDetector('style')) {
+            var newStyle;
+            var oldStyle;
+            if (this._RT.browser.isIE) {
+                newStyle = source.style.cssText;
+                oldStyle = target.style.cssText;
+                if (newStyle != oldStyle) {
+                    target.style.cssText = newStyle;
+                }
+            } else {
+                newStyle = source.getAttribute('style');
+                oldStyle = target.getAttribute('style');
+                if (newStyle != oldStyle) {
+                    target.setAttribute('style', newStyle);
+                }
+            }
+        } else if (targetAttributeDetector('style')){
+            target.removeAttribute('style');
+        }
+
+        // Special case for 'dir' attribute
+        if (!this._RT.browser.isIE && source.dir != target.dir) {
+            if (sourceAttributeDetector('dir')) {
+                target.dir = source.dir;
+            } else if (targetAttributeDetector('dir')) {
+                target.dir = '';
+            }
+        }
+
+        for (var lIndex = 0, lLength = listenerNames.length; lIndex < lLength; lIndex++) {
+            var name = listenerNames[lIndex];
+            target[name] = source[name] ? source[name] : null;
+            if (source[name]) {
+                source[name] = null;
+            }
+        }
+
+        //clone HTML5 data-* attributes
+        try{
+            var targetDataset = target.dataset;
+            var sourceDataset = source.dataset;
+            if (targetDataset || sourceDataset) {
+                //cleanup the dataset
+                for (var tp in targetDataset) {
+                    delete targetDataset[tp];
+                }
+                //copy dataset's properties
+                for (var sp in sourceDataset) {
+                    targetDataset[sp] = sourceDataset[sp];
+                }
+            }
+        } catch (ex) {
+            //most probably dataset properties are not supported
+        }
+    },
+    //from
+    // http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
+    getCaretPosition:function (ctrl) {
+        var caretPos = 0;
+
+        try {
+
+            // other browsers make it simpler by simply having a selection start element
+            if (ctrl.selectionStart || ctrl.selectionStart == '0')
+                caretPos = ctrl.selectionStart;
+            // ie 5 quirks mode as second option because
+            // this option is flakey in conjunction with text areas
+            // TODO move this into the quirks class
+            else if (document.selection) {
+                ctrl.focus();
+                var selection = document.selection.createRange();
+                //the selection now is start zero
+                selection.moveStart('character', -ctrl.value.length);
+                //the caretposition is the selection start
+                caretPos = selection.text.length;
+            }
+        } catch (e) {
+            //now this is ugly, but not supported input types throw errors for selectionStart
+            //this way we are future proof by having not to define every selection enabled
+            //input in an if (which will be a lot in the near future with html5)
+        }
+        return caretPos;
+    },
+
+    setCaretPosition:function (ctrl, pos) {
+
+        if (ctrl.createTextRange) {
+            var range = ctrl.createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', pos);
+            range.moveStart('character', pos);
+            range.select();
+        }
+        //IE quirks mode again, TODO move this into the quirks class
+        else if (ctrl.setSelectionRange) {
+            ctrl.focus();
+            //the selection range is our caret position
+            ctrl.setSelectionRange(pos, pos);
+        }
+    },
 
     /**
      * outerHTML replacement which works cross browserlike
@@ -380,31 +594,62 @@ _MF_SINGLTN(_PFX_UTIL + "_Dom", Object, /** @lends myfaces._impl._util._Dom.prot
      *
      * @param item the item to be replaced
      * @param markup the markup for the replacement
+     * @param preserveFocus, tries to preserve the focus within the outerhtml operation
+     * if set to true a focus preservation algorithm based on document.activeElement is
+     * used to preserve the focus at the exactly same location as it was
+     *
      */
-    outerHTML : function(item, markup) {
+    outerHTML : function(item, markup, preserveFocus) {
         this._assertStdParams(item, markup, "outerHTML");
+        // we can work on a single element in a cross browser fashion
+        // regarding the focus thanks to the
+        // icefaces team for providing the code
+        if (item.nodeName.toLowerCase() === 'input') {
+            var replacingInput = this._buildEvalNodes(item, markup)[0];
+            this.cloneAttributes(item, replacingInput);
+            return item;
+        } else {
+            markup = this._Lang.trim(markup);
+            if (markup !== "") {
+                var ret = null;
 
-        markup = this._Lang.trim(markup);
-        if (markup !== "") {
-            var ret = null;
+                var focusElementId = null;
+                var caretPosition = 0;
+                if (preserveFocus && 'undefined' != typeof document.activeElement) {
+                    focusElementId = (document.activeElement) ? document.activeElement.id : null;
+                    caretPosition = this.getCaretPosition(document.activeElement);
+                }
+                // we try to determine the browsers compatibility
+                // level to standards dom level 2 via various methods
+                if (this.isDomCompliant()) {
+                    ret = this._outerHTMLCompliant(item, markup);
+                } else {
+                    //call into abstract method
+                    ret = this._outerHTMLNonCompliant(item, markup);
+                }
+                if (focusElementId) {
+                    var newFocusElement = this.byId(focusElementId);
+                    if (newFocusElement && newFocusElement.nodeName.toLowerCase() === 'input') {
+                        //just in case the replacement element is not focusable anymore
+                        if ("undefined" != typeof newFocusElement.focus) {
+                            newFocusElement.focus();
+                        }
+                    }
+                    if (caretPosition) {
+                        //zero caret position is set automatically on focus
+                        this.setCaretPosition(newFocusElement, caretPosition);
+                    }
+                }
 
-            // we try to determine the browsers compatibility
-            // level to standards dom level 2 via various methods
-            if (this.isDomCompliant()) {
-                ret = this._outerHTMLCompliant(item, markup);
-            } else {
-                //call into abstract method
-                ret = this._outerHTMLNonCompliant(item, markup);
+                // and remove the old item
+                //first we have to save the node newly insert for easier access in our eval part
+                this._eval(ret);
+                return ret;
             }
-
-            // and remove the old item
-            //first we have to save the node newly insert for easier access in our eval part
-            this._eval(ret);
-            return ret;
+            // and remove the old item, in case of an empty newtag and do nothing else
+            this._removeNode(item, false);
+            return null;
         }
-        // and remove the old item, in case of an empty newtag and do nothing else
-        this._removeNode(item, false);
-        return null;
     },
 
     /**

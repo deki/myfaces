@@ -171,6 +171,9 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
     private static final Set<VisitHint> VISIT_HINTS = Collections.unmodifiableSet( 
             EnumSet.of(VisitHint.SKIP_ITERATION));
     
+    private static final String UNIQUE_ID_COUNTER_KEY =
+              "oam.view.uniqueIdCounter";
+    
     private ViewDeclarationLanguageFactory _vdlFactory;
     
     private RenderKitFactory _renderKitFactory = null;
@@ -259,8 +262,16 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
                     {
                         view.getAttributes().put(ComponentSupport.FACELET_STATE_INSTANCE,  faceletViewState);
                     }
+                    if (state.length == 3)
+                    {
+                        if (view.getId() == null)
+                        {
+                            view.setId(view.createUniqueId(context, null));
+                        }
+                        //Jump to where the count is
+                        view.getAttributes().put(UNIQUE_ID_COUNTER_KEY, state[2]);
+                    }
                 }
-
                 // TODO: Why is necessary enable event processing?
                 // ANS: On RestoreViewExecutor, setProcessingEvents is called first to false
                 // and then to true when postback. Since we need listeners registered to PostAddToViewEvent
@@ -291,7 +302,6 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
             if (state != null && state[1] != null)
             {
                 states = (Map<String, Object>) state[1];
-                
                 // Visit the children and restore their state.
                 boolean emptyState = false;
                 boolean containsFaceletState = states.containsKey(
@@ -334,137 +344,9 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
                 {
                     view.getAttributes().put(ComponentSupport.FACELET_STATE_INSTANCE,  faceletViewState);
                 }
-                
-                // TODO: handle dynamic add/removes as mandated by the spec.  Not sure how to do handle this yet.
-                List<String> clientIdsRemoved = getClientIdsRemoved(view);
-                
-                if (clientIdsRemoved != null)
-                {
-                    Set<String> idsRemovedSet = new HashSet<String>(HashMapUtils.calcCapacity(clientIdsRemoved.size()));
-                    context.getAttributes().put(FaceletViewDeclarationLanguage.REMOVING_COMPONENTS_BUILD, Boolean.TRUE);
-                    try
-                    {
-                        // perf: clientIds are ArrayList: see method registerOnAddRemoveList(String)
-                        for (int i = 0, size = clientIdsRemoved.size(); i < size; i++)
-                        {
-                            String clientId = clientIdsRemoved.get(i);
-                            if (!idsRemovedSet.contains(clientId))
-                            {
-                                view.invokeOnComponent(context, clientId, new ContextCallback()
-                                    {
-                                        public void invokeContextCallback(FacesContext context,
-                                                UIComponent target)
-                                        {
-                                            if (target.getParent() != null)
-                                            {
-                                                if (!target.getParent().getChildren().remove(target))
-                                                {
-                                                    String key = null;
-                                                    if (target.getParent().getFacetCount() > 0)
-                                                    {
-                                                        for (Map.Entry<String, UIComponent> entry :
-                                                                target.getParent().getFacets().entrySet())
-                                                        {
-                                                            if (entry.getValue()==target)
-                                                            {
-                                                                key = entry.getKey();
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                    if (key != null)
-                                                    {
-                                                        target.getParent().getFacets().remove(key);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    });
-                                idsRemovedSet.add(clientId);
-                            }
-                        }
-                        clientIdsRemoved.clear();
-                        clientIdsRemoved.addAll(idsRemovedSet);
-                    }
-                    finally
-                    {
-                        context.getAttributes().remove(FaceletViewDeclarationLanguage.REMOVING_COMPONENTS_BUILD);
-                    }
-                }
-                
-                List<String> clientIdsAdded = getClientIdsAdded(view);
-                if (clientIdsAdded != null)
-                {
-                    Set<String> idsAddedSet = new HashSet<String>(HashMapUtils.calcCapacity(clientIdsAdded.size()));
-                    // perf: clientIds are ArrayList: see method setClientsIdsAdded(String)
-                    for (int i = 0, size = clientIdsAdded.size(); i < size; i++)
-                    {
-                        String clientId = clientIdsAdded.get(i);
-                        if (!idsAddedSet.contains(clientId))
-                        {
-                            final AttachedFullStateWrapper wrapper = (AttachedFullStateWrapper) states.get(clientId);
-                            if (wrapper != null)
-                            {
-                                final Object[] addedState = (Object[]) wrapper.getWrappedStateObject(); 
-                                if (addedState != null)
-                                {
-                                    if (addedState.length == 2)
-                                    {
-                                        view = (UIViewRoot)
-                                                internalRestoreTreeStructure((TreeStructComponent) addedState[0]);
-                                        view.processRestoreState(context, addedState[1]);
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        final String parentClientId = (String) addedState[0];
-                                        view.invokeOnComponent(context, parentClientId, new ContextCallback()
-                                        {
-                                            public void invokeContextCallback(FacesContext context,
-                                                    UIComponent target)
-                                            {
-                                                if (addedState[1] != null)
-                                                {
-                                                    String facetName = (String) addedState[1];
-                                                    UIComponent child
-                                                            = internalRestoreTreeStructure((TreeStructComponent)
-                                                                                           addedState[3]);
-                                                    child.processRestoreState(context, addedState[4]);
-                                                    target.getFacets().put(facetName,child);
-                                                }
-                                                else
-                                                {
-                                                    Integer childIndex = (Integer) addedState[2];
-                                                    UIComponent child
-                                                            = internalRestoreTreeStructure((TreeStructComponent)
-                                                                                           addedState[3]);
-                                                    child.processRestoreState(context, addedState[4]);
-                                                    try
-                                                    {
-                                                        target.getChildren().add(childIndex, child);
-                                                    }
-                                                    catch (IndexOutOfBoundsException e)
-                                                    {
-                                                        // We can't be sure about where should be this 
-                                                        // item, so just add it. 
-                                                        target.getChildren().add(child);
-                                                    }
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                            idsAddedSet.add(clientId);
-                        }
-                    }
-                    // Reset this list, because it will be calculated later when the view is being saved
-                    // in the right order, preventing duplicates (see COMPONENT_ADDED_AFTER_BUILD_VIEW for details).
-                    clientIdsAdded.clear();
-                }
+                handleDynamicAddedRemovedComponents(context, view, states);
             }
         }
-        
         // Restore binding, because UIViewRoot.processRestoreState() is never called
         //the event processing has to be enabled because of the restore view event triggers
         //TODO ask the EG the this is a spec violation if we do it that way
@@ -487,6 +369,146 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
         return view;
     }
     
+    public void handleDynamicAddedRemovedComponents(FacesContext context, UIViewRoot view, Map<String, Object> states)
+    {
+        List<String> clientIdsRemoved = getClientIdsRemoved(view);
+
+        if (clientIdsRemoved != null)
+        {
+            Set<String> idsRemovedSet = new HashSet<String>(HashMapUtils.calcCapacity(clientIdsRemoved.size()));
+            context.getAttributes().put(FaceletViewDeclarationLanguage.REMOVING_COMPONENTS_BUILD, Boolean.TRUE);
+            try
+            {
+                // perf: clientIds are ArrayList: see method registerOnAddRemoveList(String)
+                for (int i = 0, size = clientIdsRemoved.size(); i < size; i++)
+                {
+                    String clientId = clientIdsRemoved.get(i);
+                    if (!idsRemovedSet.contains(clientId))
+                    {
+                        view.invokeOnComponent(context, clientId, new RemoveComponentCallback());
+                        idsRemovedSet.add(clientId);
+                    }
+                }
+                clientIdsRemoved.clear();
+                clientIdsRemoved.addAll(idsRemovedSet);
+            }
+            finally
+            {
+                context.getAttributes().remove(FaceletViewDeclarationLanguage.REMOVING_COMPONENTS_BUILD);
+            }
+        }
+        List<String> clientIdsAdded = getClientIdsAdded(view);
+        if (clientIdsAdded != null)
+        {
+            Set<String> idsAddedSet = new HashSet<String>(HashMapUtils.calcCapacity(clientIdsAdded.size()));
+            // perf: clientIds are ArrayList: see method setClientsIdsAdded(String)
+            for (int i = 0, size = clientIdsAdded.size(); i < size; i++)
+            {
+                String clientId = clientIdsAdded.get(i);
+                if (!idsAddedSet.contains(clientId))
+                {
+                    final AttachedFullStateWrapper wrapper = (AttachedFullStateWrapper) states.get(clientId);
+                    if (wrapper != null)
+                    {
+                        final Object[] addedState = (Object[]) wrapper.getWrappedStateObject(); 
+                        if (addedState != null)
+                        {
+                            if (addedState.length == 2)
+                            {
+                                view = (UIViewRoot)
+                                        internalRestoreTreeStructure((TreeStructComponent) addedState[0]);
+                                view.processRestoreState(context, addedState[1]);
+                                break;
+                            }
+                            else
+                            {
+                                final String parentClientId = (String) addedState[0];
+                                view.invokeOnComponent(context, parentClientId, 
+                                    new AddComponentCallback(addedState));
+                            }
+                        }
+                    }
+                    idsAddedSet.add(clientId);
+                }
+            }
+            // Reset this list, because it will be calculated later when the view is being saved
+            // in the right order, preventing duplicates (see COMPONENT_ADDED_AFTER_BUILD_VIEW for details).
+            clientIdsAdded.clear();
+        }
+    }
+
+    public static class RemoveComponentCallback implements ContextCallback
+    {
+        public void invokeContextCallback(FacesContext context,
+                UIComponent target)
+        {
+            if (target.getParent() != null)
+            {
+                if (!target.getParent().getChildren().remove(target))
+                {
+                    String key = null;
+                    if (target.getParent().getFacetCount() > 0)
+                    {
+                        for (Map.Entry<String, UIComponent> entry :
+                                target.getParent().getFacets().entrySet())
+                        {
+                            if (entry.getValue()==target)
+                            {
+                                key = entry.getKey();
+                                break;
+                            }
+                        }
+                    }
+                    if (key != null)
+                    {
+                        target.getParent().getFacets().remove(key);
+                    }
+                }
+            }
+        }
+    }
+
+    public static class AddComponentCallback implements ContextCallback
+    {
+        private final Object[] addedState;
+        
+        public AddComponentCallback(Object[] addedState)
+        {
+            this.addedState = addedState;
+        }
+        
+        public void invokeContextCallback(FacesContext context,
+                UIComponent target)
+        {
+            if (addedState[1] != null)
+            {
+                String facetName = (String) addedState[1];
+                UIComponent child
+                        = internalRestoreTreeStructure((TreeStructComponent)
+                                                       addedState[3]);
+                child.processRestoreState(context, addedState[4]);
+                target.getFacets().put(facetName,child);
+            }
+            else
+            {
+                Integer childIndex = (Integer) addedState[2];
+                UIComponent child
+                        = internalRestoreTreeStructure((TreeStructComponent)
+                                                       addedState[3]);
+                child.processRestoreState(context, addedState[4]);
+                try
+                {
+                    target.getChildren().add(childIndex, child);
+                }
+                catch (IndexOutOfBoundsException e)
+                {
+                    // We can't be sure about where should be this 
+                    // item, so just add it. 
+                    target.getChildren().add(child);
+                }
+            }
+        }
+    }
 
     @Override
     public Object saveView (FacesContext context)
@@ -578,8 +600,12 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
             
             // As required by ResponseStateManager, the return value is an Object array.  First
             // element is the structure object, second is the state map.
-
-            if (states == null)
+            Long uniqueIdCount = (Long) view.getAttributes().get(UNIQUE_ID_COUNTER_KEY);
+            if (uniqueIdCount != null && !uniqueIdCount.equals(1L))
+            {
+                serializedView = new Object[] { null, states, uniqueIdCount };
+            }
+            else if (states == null)
             {
                 serializedView = EMPTY_STATES;
             }
@@ -703,7 +729,7 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
             component.popComponentFromEL(context);
         }
     }
-    
+
     static List<String> getClientIdsAdded(UIViewRoot root)
     {
         return (List<String>) root.getAttributes().get(CLIENTIDS_ADDED);
@@ -1201,7 +1227,7 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
         }
     }
     
-    private TreeStructComponent internalBuildTreeStructureToSave(UIComponent component)
+    private static TreeStructComponent internalBuildTreeStructureToSave(UIComponent component)
     {
         TreeStructComponent structComp = new TreeStructComponent(component.getClass().getName(),
                                                                  component.getId());
@@ -1248,7 +1274,7 @@ public class DefaultFaceletsStateManagementStrategy extends StateManagementStrat
         return structComp;
     }
     
-    private UIComponent internalRestoreTreeStructure(TreeStructComponent treeStructComp)
+    private static UIComponent internalRestoreTreeStructure(TreeStructComponent treeStructComp)
     {
         String compClass = treeStructComp.getComponentClass();
         String compId = treeStructComp.getComponentId();

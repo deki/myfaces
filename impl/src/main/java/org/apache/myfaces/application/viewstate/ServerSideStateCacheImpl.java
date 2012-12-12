@@ -260,7 +260,7 @@ class ServerSideStateCacheImpl extends StateCache<Object, Object>
     {
       if (state != null)
       {
-          return getKeyFactory(facesContext).decode(state);
+          return getKeyFactory(facesContext).decode((String) state);
       }
       return null;
     }
@@ -424,13 +424,9 @@ class ServerSideStateCacheImpl extends StateCache<Object, Object>
                     os.write(UNCOMPRESSED_FLAG);
                 }
 
-                //Object[] stateArray = (Object[]) serializedView;
-
                 ObjectOutputStream out = new ObjectOutputStream(os);
                 
                 out.writeObject(serializedView);
-                //out.writeObject(stateArray[0]);
-                //out.writeObject(stateArray[1]);
                 out.close();
                 baos.close();
 
