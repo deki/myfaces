@@ -18,31 +18,6 @@
  */
 package org.apache.myfaces.view.facelets.compiler;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
-
-import javax.faces.FacesException;
-import javax.faces.application.Resource;
-import javax.faces.application.ResourceHandler;
-import javax.faces.application.ViewHandler;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.faces.view.facelets.ComponentConfig;
-import javax.faces.view.facelets.FaceletHandler;
-import javax.faces.view.facelets.Tag;
-import javax.faces.view.facelets.TagConfig;
-import javax.faces.view.facelets.TagHandler;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
 import org.apache.myfaces.config.ConfigFilesXmlValidationUtils;
 import org.apache.myfaces.shared.config.MyfacesConfig;
 import org.apache.myfaces.shared.util.ArrayUtils;
@@ -64,6 +39,30 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
+
+import javax.faces.FacesException;
+import javax.faces.application.Resource;
+import javax.faces.application.ResourceHandler;
+import javax.faces.application.ViewHandler;
+import javax.faces.context.ExternalContext;
+import javax.faces.context.FacesContext;
+import javax.faces.view.facelets.ComponentConfig;
+import javax.faces.view.facelets.FaceletHandler;
+import javax.faces.view.facelets.Tag;
+import javax.faces.view.facelets.TagConfig;
+import javax.faces.view.facelets.TagHandler;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Handles creating a {@link org.apache.myfaces.view.facelets.tag.TagLibrary TagLibrary}
@@ -618,10 +617,8 @@ public final class TagLibraryConfig
             }
             catch (Exception e)
             {
-                SAXException saxe = new SAXException("Error Handling [" + this.source + "@"
-                        + this.locator.getLineNumber() + "," + this.locator.getColumnNumber() + "] <" + qName + ">");
-                saxe.initCause(e);
-                throw saxe;
+                throw new SAXParseException("Error Handling [" + this.source + "@" + this.locator.getLineNumber()
+                        + "," + this.locator.getColumnNumber() + "] <" + qName + ">", locator, e);
             }
         }
 
@@ -743,10 +740,8 @@ public final class TagLibraryConfig
 
         public void error(SAXParseException e) throws SAXException
         {
-            SAXException saxe = new SAXException("Error Handling [" + this.source + "@" + e.getLineNumber() + ","
-                    + e.getColumnNumber() + "]");
-            saxe.initCause(e);
-            throw saxe;
+            throw new SAXException(
+                    "Error Handling [" + this.source + "@" + e.getLineNumber() + "," + e.getColumnNumber() + "]", e);
         }
 
         public void setDocumentLocator(Locator locator)
